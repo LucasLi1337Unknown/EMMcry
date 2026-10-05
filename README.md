@@ -39,7 +39,8 @@ After changing an EMM game, run `python3 scripts/build_web.py` and reload the pa
 Requires Python 3.10+ and a GCC/Clang-compatible C++17 compiler. On a Mac, install Apple's Command Line Tools with `xcode-select --install` if `c++` is unavailable.
 
 ```sh
-cd emmcry
+git clone https://github.com/LucasLi1337Unknown/EMMcry.git
+cd EMMcry
 python3 -m venv .venv
 . .venv/bin/activate
 python3 -m pip install -r requirements.txt
@@ -83,9 +84,12 @@ Translation validates syntax and preserves literal data and identifier spelling.
 ```sh
 python3 -m unittest discover -s tests -v
 node tests/test_web.cjs
+# Optional DOM interaction tests require Node 24.15+:
+npm ci
+npm run test:ui
 ```
 
-The native suite compiles and executes both dialects, verifies translation round trips, exercises runtime semantics, and compares 1,010 poker hands per dialect against an independent Python evaluator. Browser tests execute all seven lessons, verify that source hashes match compiled assets, test 100 generated dungeons for reachable exits, check combat and victory, check 2048 merge/undo rules, and compare another 1,010 poker hands with stored independent reference scores. Tests use temporary directories and synthetic data. The included GitHub Actions workflow runs both suites and verifies generated assets stay up to date.
+The native suite compiles and executes both dialects, verifies translation round trips, exercises runtime semantics, and compares 1,010 poker hands per dialect against an independent Python evaluator. Browser VM tests execute all seven lessons, verify that source hashes match compiled assets, test 100 generated dungeons for reachable exits, check combat and victory, check 2048 merge/undo rules, and compare another 1,010 poker hands with stored independent reference scores. DOM tests exercise the actual interface's lesson buttons, syntax toggles, game tabs, keyboard, poker interactions and source inspector. They do not claim to validate visual browser layout. Tests use temporary directories and synthetic data. The included GitHub Actions workflow runs these checks and verifies generated assets stay up to date.
 
 ## Honest 0.1 limits
 

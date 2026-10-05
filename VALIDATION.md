@@ -5,9 +5,10 @@
 - 15 native compiler tests passed again after adding the browser games.
 - 9 browser-VM test groups passed: all seven lessons, source/compiled-asset hashes, merge and undo rules, board exhaustion/victory, 100 dungeon seeds with reachable exits, combat/leveling/potions/stairs/loss/victory, 100 poker rounds without duplicate cards, 1,010 independent poker oracle comparisons, and bounded execution/faults.
 - All three game sources separately compiled and executed with the native C++ backend. Additional harnesses verified merging and score, poker outcomes, and potion use.
+- DOM integration checks passed for all seven lessons, saved progress, syntax switching, game tabs, keyboard input, poker card selection/draw/reveal/new round, and source inspection. These use JSDOM without external resource fetching; they verify interactions, not rendered appearance.
 - The original native poker suite additionally checks 1,010 hands in each syntax. Across native and browser runs there are 3,030 reference hand comparisons.
 
-UI checks and GitHub Pages deployment are recorded separately after publication. The source layout includes responsive CSS and reduced-motion behavior. Compiler and VM checks are not a substitute for a rendered UI check.
+GitHub Actions successfully ran the native suite, web builder reproducibility check, and browser-VM suite on the published source. Public GitHub Pages hosting and GitHub Discussions remain disabled pending explicit approval: automatic approval review rejected those settings changes. The source layout includes responsive CSS and reduced-motion behavior. A rendered browser layout check has not been completed: the cloud browser disallows local file URLs, and public hosting is awaiting approval. Compiler/VM checks are not claimed as visual verification.
 
 ## Initial compiler release
 

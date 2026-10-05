@@ -138,8 +138,6 @@ Users never manually allocate or free language values. Runtime arenas own heap o
 
 The current backend targets GCC/Clang on macOS and Linux, and uses checked integer-overflow intrinsics. It does not claim MSVC compatibility. The compiler uses the Python `regex` package's grapheme support. Native executables use only the C++ runtime and platform libraries.
 
-## Future extension design, not implemented
-
 ## Browser execution profile
 
 The browser arcade consumes the same parsed IR through `web/runtime.js`. `scripts/build_web.py` uses the Python compiler frontend, includes module source, and stores integer literal text to avoid JSON number rounding. Browser integers use checked signed 64-bit `BigInt`; floats use JavaScript numbers. Sources and games keep the same syntax. JavaScript presentation code sends action names into EMM functions and renders their state.

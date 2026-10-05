@@ -1,0 +1,17 @@
+{
+  "name": "emmcry-showcase",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Development tests for the EMMcry language showcase",
+  "scripts": {
+    "build": "python3 scripts/build_web.py",
+    "test": "node tests/test_web.cjs",
+    "test:ui": "node tests/test_dom.cjs"
+  },
+  "devDependencies": {
+    "jsdom": "30.1.2"
+  },
+  "engines": {
+    "node": ">=24.15.0"
+  }
+}
