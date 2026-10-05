@@ -1,0 +1,6 @@
+... total = 0
+..... i : ...?? $9(1, 6)
+{
+    ! total = total + i
+}
+...! total

@@ -1,0 +1,17 @@
+// Machine-readable evaluator harness used by the independent reference tests.
+<< "pokerlib.emm" : poker
+... line = ""
+...? line
+... count = ...?? $5(line)
+..... index : ...?? $9(0, count)
+{
+    ...? line
+    ... hand = []
+    ..... text : ...?? $30(line, ",")
+    {
+        ... parts = ...?? $30(text, ":")
+        ...?? $7(hand, {rank: ...?? $5(parts[0]), suit: parts[1]})
+    }
+    ... score = ...?? poker.evaluate(hand)
+    ...! ...?? $31(...?? $27(score, $4), ",")
+}

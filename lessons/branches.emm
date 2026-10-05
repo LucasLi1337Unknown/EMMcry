@@ -1,0 +1,4 @@
+... score = 85
+?? score >= 80 { ...! "We ARE COKKING" }
+??? score >= 60 { ...! "Keep going" }
+???? { ...! "Try again" }

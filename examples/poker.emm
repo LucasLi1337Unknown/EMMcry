@@ -1,0 +1,51 @@
+<< "pokerlib.emm" : poker
+.... names = ["High Card", "One Pair", "Two Pair", "Three of a Kind", "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush"]
+... deck = []
+..... suit : ["S", "H", "D", "C"]
+{
+    ..... rank : ...?? $9(2, 15)
+    {
+        ...?? $7(deck, {rank: rank, suit: suit})
+    }
+}
+! deck = ...?? $11(deck)
+... player = ...?? $12(deck, 0, 5)
+... dealer = ...?? $12(deck, 5, 10)
+...! "EMM😭 five-card draw — no betting."
+...! "Your hand:"
+...! player
+...! "Replace cards once: enter positions 1-5 separated by commas, or 0 to keep all."
+... choice = ""
+...? choice
+?? choice != "0" && choice != ""
+{
+    ... positions = ...?? $30(choice, ",")
+    ... used = {}
+    ... next = 10
+    ..... position : positions
+    {
+        ?:
+        {
+            ... index = ...?? $5(position) - 1
+            ...?? $24(index >= 0 && index < 5)
+            ... key = ...?? $4(index)
+            ?? ~ ...?? $14(used, key)
+            {
+                ! player[index] = deck[next]
+                ! used[key] = ++
+                ! next = next + 1
+            }
+        }
+        ?!! error { ...! "Skipped invalid position: " + position }
+    }
+}
+... playerScore = ...?? poker.evaluate(player)
+... dealerScore = ...?? poker.evaluate(dealer)
+...! "You: " + names[playerScore[0]]
+...! player
+...! "Dealer: " + names[dealerScore[0]]
+...! dealer
+... result = ...?? poker.compare(playerScore, dealerScore)
+?? result > 0 { ...! "You win!" }
+??? result < 0 { ...! "Dealer wins." }
+???? { ...! "Tie." }

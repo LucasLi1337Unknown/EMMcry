@@ -1,0 +1,98 @@
+// 2048: movement, scoring, spawn, victory, game over, and undo are all EMM.
+... board = []
+... score = 0
+... won = --
+... over = --
+... previous = []
+... previousScore = 0
+... moves = 0
+... canUndo = --
+??... spawn()
+{
+    ... empty = []
+    ..... i : ...?? $9(0, 16) { ?? board[i] == 0 { ...?? $7(empty, i) } }
+    ?? ...?? $1(empty) > 0
+    {
+        ... index = empty[...?? $0(0, ...?? $1(empty) - 1)]
+        ?? ...?? $0(1, 10) == 10 { ! board[index] = 4 }
+        ???? { ! board[index] = 2 }
+    }
+}
+??... start()
+{
+    ! board = []
+    ..... i : ...?? $9(0, 16) { ...?? $7(board, 0) }
+    ! score = 0 ! moves = 0 ! won = -- ! over = -- ! canUndo = --
+    ...?? spawn() ...?? spawn()
+}
+??... merge(line)
+{
+    ... compact = []
+    ..... tile : line { ?? tile != 0 { ...?? $7(compact, tile) } }
+    ... out = [] ... i = 0
+    ...... i < ...?? $1(compact)
+    {
+        ?? i + 1 < ...?? $1(compact) && compact[i] == compact[i + 1]
+        {
+            ... tile = compact[i] * 2
+            ...?? $7(out, tile)
+            ! score = score + tile
+            ?? tile >= 2048 { ! won = ++ }
+            ! i = i + 2
+        }
+        ???? { ...?? $7(out, compact[i]) ! i = i + 1 }
+    }
+    ...... ...?? $1(out) < 4 { ...?? $7(out, 0) }
+    !... out
+}
+??... indexFor(direction, row, col)
+{
+    ?? direction == "left" { !... row * 4 + col }
+    ?? direction == "right" { !... row * 4 + 3 - col }
+    ?? direction == "up" { !... col * 4 + row }
+    !... (3 - col) * 4 + row
+}
+??... available()
+{
+    ..... i : ...?? $9(0, 16)
+    {
+        ?? board[i] == 0 { !... ++ }
+        ?? i % 4 < 3 && board[i] == board[i + 1] { !... ++ }
+        ?? i < 12 && board[i] == board[i + 4] { !... ++ }
+    }
+    !... --
+}
+??... move(direction)
+{
+    ?? over { !... -- }
+    ... old = ...?? $12(board, 0, 16) ... oldScore = score ... changed = --
+    ..... row : ...?? $9(0, 4)
+    {
+        ... line = []
+        ..... col : ...?? $9(0, 4) { ...?? $7(line, board[...?? indexFor(direction, row, col)]) }
+        ... result = ...?? merge(line)
+        ..... col : ...?? $9(0, 4)
+        {
+            ... index = ...?? indexFor(direction, row, col)
+            ?? board[index] != result[col] { ! changed = ++ }
+            ! board[index] = result[col]
+        }
+    }
+    ?? changed
+    {
+        ! previous = old ! previousScore = oldScore ! canUndo = ++
+        ! moves = moves + 1 ...?? spawn()
+    }
+    ! over = ~ ...?? available()
+    !... changed
+}
+??... undo()
+{
+    ?? canUndo
+    {
+        ! board = previous ! score = previousScore ! moves = moves - 1
+        ! over = -- ! won = -- ! canUndo = --
+        ..... tile : board { ?? tile >= 2048 { ! won = ++ } }
+    }
+}
+...?? start()

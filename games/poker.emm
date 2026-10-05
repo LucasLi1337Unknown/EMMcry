@@ -1,0 +1,52 @@
+<< "../examples/pokerlib.emm" : poker
+.... names = ["High Card", "One Pair", "Two Pair", "Three of a Kind", "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush"]
+... player = [] ... dealer = [] ... deck = [] ... selected = []
+... phase = "ready" ... result = "Choose cards to replace, then draw."
+... playerLabel = "" ... dealerLabel = "Hidden"
+... wins = 0 ... losses = 0 ... ties = 0 ... rounds = 0
+??... deal()
+{
+    ! deck = [] ! selected = []
+    ..... suit : ["S", "H", "D", "C"]
+    { ..... rank : ...?? $9(2, 15) { ...?? $7(deck, {rank: rank, suit: suit}) } }
+    ! deck = ...?? $11(deck)
+    ! player = ...?? $12(deck, 0, 5) ! dealer = ...?? $12(deck, 5, 10)
+    ..... i : ...?? $9(0, 5) { ...?? $7(selected, --) }
+    ! phase = "draw" ! result = "Select cards to replace. You get one draw."
+    ! playerLabel = names[(...?? poker.evaluate(player))[0]] ! dealerLabel = "Hidden"
+}
+??... select(index)
+{
+    ?? phase == "draw" { ! selected[index] = ~ selected[index] }
+}
+??... draw()
+{
+    ?? phase != "draw" { !... .. }
+    ... next = 10
+    ..... i : ...?? $9(0, 5)
+    { ?? selected[i] { ! player[i] = deck[next] ! next = next + 1 } }
+    // Dealer holds duplicates or a made straight/flush, otherwise its two high cards.
+    ... dealerScore = ...?? poker.evaluate(dealer)
+    ?? dealerScore[0] < 4
+    {
+        ... original = ...?? $12(dealer, 0, 5)
+        ... ranks = []
+        ..... card : dealer { ...?? $7(ranks, card.rank) }
+        ! ranks = ...?? $10(ranks)
+        ..... i : ...?? $9(0, 5)
+        {
+            ... matches = 0
+            ..... card : original { ?? card.rank == original[i].rank { ! matches = matches + 1 } }
+            ?? matches == 1 && (dealerScore[0] > 0 || original[i].rank < ranks[3])
+            { ! dealer[i] = deck[next] ! next = next + 1 }
+        }
+    }
+    ... p = ...?? poker.evaluate(player) ... d = ...?? poker.evaluate(dealer)
+    ! playerLabel = names[p[0]] ! dealerLabel = names[d[0]]
+    ... comparison = ...?? poker.compare(p, d)
+    ?? comparison > 0 { ! wins = wins + 1 ! result = "You win. We ARE COKKING." }
+    ??? comparison < 0 { ! losses = losses + 1 ! result = "Dealer wins. The punctuation has opinions." }
+    ???? { ! ties = ties + 1 ! result = "Tie. Shared custody of the glory." }
+    ! rounds = rounds + 1 ! phase = "reveal"
+}
+...?? deal()

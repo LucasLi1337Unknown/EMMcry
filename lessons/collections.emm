@@ -1,0 +1,6 @@
+... hero = {name: "Lucas", hp: 20}
+... inventory = ["potion", "key"]
+! hero.hp = hero.hp - 3
+...?? $7(inventory, "treasure")
+...! hero.name + ": " + ...?? $4(hero.hp) + " HP"
+...! inventory

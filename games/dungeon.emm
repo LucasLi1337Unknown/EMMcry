@@ -1,0 +1,181 @@
+// COKKING Catacombs: a five-floor turn-based roguelike, written in EMM.
+... size = 11 ... tiles = [] ... seen = [] ... enemies = []
+... hero = {x: 1, y: 1, hp: 24, maxHp: 24, attack: 4, potions: 2, gold: 0, xp: 0, level: 1}
+... floor = 1 ... turns = 0 ... kills = 0 ... phase = "playing"
+... journal = [] ... bossDead = --
+??... log(text)
+{
+    ...?? $7(journal, text)
+    ?? ...?? $1(journal) > 6 { ! journal = ...?? $12(journal, 1, 7) }
+}
+??... idx(x, y) { !... y * size + x }
+??... enemyAt(x, y)
+{
+    ..... i : ...?? $9(0, ...?? $1(enemies))
+    { ?? enemies[i].hp > 0 && enemies[i].x == x && enemies[i].y == y { !... i } }
+    !... -1
+}
+??... reveal()
+{
+    ..... y : ...?? $9(0, size)
+    { ..... x : ...?? $9(0, size)
+        { ?? ...?? $15(x - hero.x) + ...?? $15(y - hero.y) <= 3 { ! seen[...?? idx(x, y)] = ++ } }
+    }
+}
+??... room()
+{
+    ! tiles = [] ! seen = [] ! enemies = []
+    ..... y : ...?? $9(0, size)
+    { ..... x : ...?? $9(0, size)
+        {
+            ... tile = 0
+            ?? x == 0 || y == 0 || x == 10 || y == 10 { ! tile = 1 }
+            ??? x > 1 && y < 9 && ...?? $0(1, 100) < 17 { ! tile = 1 }
+            ...?? $7(tiles, tile) ...?? $7(seen, --)
+        }
+    }
+    // A guaranteed route down the left edge and across the bottom to the stairs.
+    ! tiles[...?? idx(9, 9)] = 3 ! hero.x = 1 ! hero.y = 1
+    ... count = 0
+    ...... count < 7
+    {
+        ... x = ...?? $0(2, 9) ... y = ...?? $0(2, 8) ... cell = ...?? idx(x, y)
+        ?? tiles[cell] == 0
+        {
+            ?? count < 3 { ! tiles[cell] = 2 }
+            ??? count < 5 { ! tiles[cell] = 4 }
+            ???? { ! tiles[cell] = 5 }
+            ! count = count + 1
+        }
+    }
+    ! count = 0
+    ...... count < 3 + floor
+    {
+        ... x = ...?? $0(3, 9) ... y = ...?? $0(2, 8)
+        ?? tiles[...?? idx(x, y)] == 0 && ...?? enemyAt(x, y) < 0
+        {
+            ...?? $7(enemies, {x: x, y: y, hp: 5 + floor * 2, attack: 1 + floor, boss: --})
+            ! count = count + 1
+        }
+    }
+    ?? floor == 5
+    {
+        ! tiles[...?? idx(8, 9)] = 0
+        ...?? $7(enemies, {x: 8, y: 9, hp: 24, attack: 6, boss: ++})
+        ...?? log("The Semicolon Sentinel guards the final exit.")
+    }
+    ...?? reveal()
+}
+??... start()
+{
+    ! hero = {x: 1, y: 1, hp: 24, maxHp: 24, attack: 4, potions: 2, gold: 0, xp: 0, level: 1}
+    ! floor = 1 ! turns = 0 ! kills = 0 ! phase = "playing" ! journal = [] ! bossDead = --
+    ...?? room() ...?? log("Find the stairs. Bump into an enemy to attack. P drinks a potion.")
+}
+??... gain()
+{
+    ! kills = kills + 1 ! hero.xp = hero.xp + 1
+    ?? hero.xp >= 3
+    {
+        ! hero.xp = hero.xp - 3 ! hero.level = hero.level + 1
+        ! hero.attack = hero.attack + 2 ! hero.maxHp = hero.maxHp + 3
+        ! hero.hp = ...?? $2(hero.maxHp, hero.hp + 5)
+        ...?? log("Level up! Attack +2, max HP +3.")
+    }
+}
+??... enemyTurn()
+{
+    ..... monster : enemies
+    {
+        ?? monster.hp <= 0 { !? }
+        ... distance = ...?? $15(monster.x - hero.x) + ...?? $15(monster.y - hero.y)
+        ?? distance == 1
+        {
+            ! hero.hp = hero.hp - monster.attack
+            ...?? log("Enemy hits for " + ...?? $4(monster.attack) + ".")
+        }
+        ??? distance <= 5
+        {
+            ... dx = 0 ... dy = 0
+            ?? hero.x > monster.x { ! dx = 1 }
+            ??? hero.x < monster.x { ! dx = -1 }
+            ?? hero.y > monster.y { ! dy = 1 }
+            ??? hero.y < monster.y { ! dy = -1 }
+            ... x = monster.x + dx ... y = monster.y
+            ?? dx != 0 && tiles[...?? idx(x, y)] != 1 && ...?? enemyAt(x, y) < 0 && (x != hero.x || y != hero.y)
+            { ! monster.x = x }
+            ????
+            {
+                ! x = monster.x ! y = monster.y + dy
+                ?? dy != 0 && tiles[...?? idx(x, y)] != 1 && ...?? enemyAt(x, y) < 0 && (x != hero.x || y != hero.y)
+                { ! monster.y = y }
+            }
+        }
+        ?? hero.hp <= 0 { ! hero.hp = 0 ! phase = "lost" ...?? log("You fell. A fresh expedition is one click away.") !! }
+    }
+}
+??... act(action)
+{
+    ?? phase != "playing" { !... -- }
+    ... dx = 0 ... dy = 0
+    ?? action == "left" { ! dx = -1 }
+    ??? action == "right" { ! dx = 1 }
+    ??? action == "up" { ! dy = -1 }
+    ??? action == "down" { ! dy = 1 }
+    ??? action == "potion"
+    {
+        ?? hero.potions == 0 || hero.hp == hero.maxHp { ...?? log("Save the potion for when you need it.") !... -- }
+        ! hero.potions = hero.potions - 1 ! hero.hp = ...?? $2(hero.maxHp, hero.hp + 14)
+        ...?? log("Potion: +14 HP. The monsters still get a turn.")
+    }
+    ??? action != "wait" { !... -- }
+    ?? dx != 0 || dy != 0
+    {
+        ... x = hero.x + dx ... y = hero.y + dy ... cell = ...?? idx(x, y)
+        ?? tiles[cell] == 1 { !... -- }
+        ... target = ...?? enemyAt(x, y)
+        ?? target >= 0
+        {
+            ! enemies[target].hp = enemies[target].hp - hero.attack
+            ...?? log("You hit for " + ...?? $4(hero.attack) + ".")
+            ?? enemies[target].hp <= 0
+            {
+                ?? enemies[target].boss { ! bossDead = ++ ...?? log("Sentinel defeated. The exit is yours.") }
+                ...?? gain() ! hero.gold = hero.gold + floor * 5
+            }
+        }
+        ????
+        {
+            ! hero.x = x ! hero.y = y
+            ... tile = tiles[cell]
+            ?? tile == 2
+            {
+                ! hero.gold = hero.gold + ...?? $0(10, 25)
+                ?? ...?? $0(0, 1) == 1 { ! hero.attack = hero.attack + 1 ...?? log("Chest: gold and a sharper weapon (+1 attack).") }
+                ???? { ! hero.potions = hero.potions + 1 ...?? log("Chest: gold and a spare potion.") }
+                ! tiles[cell] = 0
+            }
+            ??? tile == 4 { ! hero.potions = hero.potions + 1 ! tiles[cell] = 0 ...?? log("Found a potion.") }
+            ??? tile == 5 { ! hero.hp = hero.hp - 3 ! tiles[cell] = 0 ...?? log("Spike trap: -3 HP.") }
+            ??? tile == 3
+            {
+                ?? floor == 5
+                {
+                    ?? bossDead { ! phase = "won" ...?? log("Escaped all five floors. We ARE COKKING.") !... ++ }
+                    ???? { ...?? log("Defeat the Sentinel before escaping.") }
+                }
+                ????
+                {
+                    ! floor = floor + 1 ! hero.hp = ...?? $2(hero.maxHp, hero.hp + 5)
+                    ...?? room() ...?? log("Floor " + ...?? $4(floor) + ": recovered 5 HP.")
+                    ! turns = turns + 1 !... ++
+                }
+            }
+        }
+    }
+    ! turns = turns + 1 ...?? reveal()
+    ?? hero.hp <= 0 { ! hero.hp = 0 ! phase = "lost" }
+    ???? { ...?? enemyTurn() }
+    !... ++
+}
+...?? start()
